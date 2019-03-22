@@ -1,3 +1,10 @@
+let urlParams = new URLSearchParams(window.location.search);
+const user = urlParams.get('user');
+
+let scoreboard = localStorage.getItem("scoreboard");
+scoreboard = scoreboard !== null ? JSON.parse(scoreboard) : [];
+const SCOREBOARD_SIZE = 10;
+
 const boardCvs = document.getElementById("boardCanvas");
 const boardCtx = boardCvs.getContext("2d");
 const BOARD_ROWS = 20;
@@ -97,6 +104,20 @@ class Next extends Grid {
     }
 }
 
+function findSortedIndex(newElem, array, compareFn) {
+    if (array.length < 1 || compareFn(newElem, array[0])) {
+        return 0;
+    }
+
+    let i;
+    for (i = 1; i < array.length; i++) {
+        if (compareFn(newElem, array[i]) && !compareFn(newElem, array[i - 1])) {
+            break;
+        }
+    }
+    return i;
+}
+
 class Board extends Grid {
     constructor(boardCtx, rows, cols, next) {
         super(boardCtx, rows, cols);
@@ -148,6 +169,22 @@ class Board extends Grid {
 
                 if (this.figure.y + i <= 0) {
                     clearInterval(timerId);
+
+                    let newScore = {
+                        user: user,
+                        score: score
+                    };
+                    console.log(`Score - ${newScore.score}`);
+
+                    let scoreIndex = findSortedIndex(newScore, scoreboard, (a, b) => a.score > b.score);
+                    scoreboard.splice(scoreIndex, 0, newScore);
+                    if (scoreboard.length > SCOREBOARD_SIZE) {
+                        scoreboard = scoreboard.slice(0, SCOREBOARD_SIZE);
+                    }
+                    console.log(`Scoreboard - ${JSON.stringify(scoreboard)}`);
+
+                    localStorage.setItem("scoreboard", JSON.stringify(scoreboard));
+
                     alert("Game Over");
                     return;
                 }
@@ -173,7 +210,7 @@ class Board extends Grid {
                 isRowFull = isRowFull && (square !== EMPTY_COLOR);
             }
 
-            if (isRowFull) {
+            if (isRowFull === true) {
                 let newRow = Array(BOARD_COLS).fill(EMPTY_COLOR);
                 this.grid.splice(i, 1);
                 this.grid.unshift(newRow);
