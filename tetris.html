@@ -3,14 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <title>Tetris</title>
+    <link href="style.css" rel="stylesheet">
 </head>
 <body>
-    <canvas id="boardCanvas" width="300" height="600"></canvas>
-    <div>
+    <h1 class="title">Tetris</h1>
+    <div class="game">
         <canvas id="nextCanvas" width="120" height="120"></canvas>
-        <div id="score">Score: 0</div>
+        <canvas id="boardCanvas" width="300" height="600"></canvas>
+        <div class="stats">
+            <div id="player" class="stats-text">Player: Name</div>
+            <div id="score" class="stats-text">Score: 0</div>
+            <div class="controls">
+                <p>🡸 - Move left</p>
+                <p>🡺 - Move right</p>
+                <p>🡹 - Rotate</p>
+                <p>🡻 - Move down</p>
+            </div>
+        </div>
     </div>
-
+    <div id="gameOverModal">
+        <div class="modal-content">
+            <p>Game Over</p>
+            <button type="button" onclick="openScoreboard()">Scoreboard</button>
+        </div>
+    </div>
+    <script>
+        function openScoreboard() {
+            window.location.href = "scoreboard.html";
+        }
+    </script>
     <script type="text/javascript" src="tetris.js"></script>
 </body>
 </html>

@@ -3,11 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <title>Tetris</title>
+    <link href="style.css" rel="stylesheet">
 </head>
 <body>
-    <form action="tetris.html" method="get">
-        <input type="text" name="user" placeholder="Username"><br/>
+    <h1 class="title">Tetris</h1>
+    <form class="start-form" action="tetris.html" method="get" onsubmit="storePlayer()">
+        <input id="player" type="text" placeholder="Player" minlength="3" required>
         <button type="submit">Start</button>
     </form>
+    <script>
+        const player = localStorage["player"];
+        document.getElementById("player").value = player !== undefined ? player : null;
+
+        function storePlayer() {
+            localStorage["player"] = document.getElementById("player").value;
+        }
+    </script>
 </body>
 </html>

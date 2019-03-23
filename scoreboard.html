@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tetris</title>
+    <link href="style.css" rel="stylesheet">
+</head>
+<body>
+    <h1 class="title">Scoreboard</h1>
+    <div class="scoreboard">
+        <table id="scoreboardTable">
+            <thead>
+                <tr>
+                    <th>Player</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <div class="scoreboard-buttons">
+            <button type="button" onclick="openHome()">Home</button>
+            <button type="button" onclick="exportScoreboard()">Export</button>
+        </div>
+    </div>
+    <script>
+        function openHome() {
+            window.location.href = "index.html";
+        }
+    </script>
+    <script type="text/javascript" src="scoreboard.js"></script>
+</body>
+</html>

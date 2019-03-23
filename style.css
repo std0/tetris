@@ -1,0 +1,161 @@
+@import url('https://fonts.googleapis.com/css?family=Cabin+Sketch:400,700');
+
+body {
+    font-family: 'Cabin Sketch', cursive;
+}
+
+button {
+    border: 2px solid #999;
+    border-radius: 10px;
+    padding: 3px 20px;
+    background-color: #eee;
+    font-family: inherit;
+}
+
+button:hover {
+    border-color: #666;
+    background-color: #ddd;
+}
+
+.title {
+    margin-top: 0;
+    margin-bottom: 5px;
+    text-align: center;
+    font-size: 48pt;
+}
+
+.start-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.start-form input {
+    width: 15%;
+    margin-top: 10px;
+    border: 2px solid #999;
+    border-radius: 10px;
+    padding: 5px 10px;
+    font-family: inherit;
+    font-size: 18pt;
+    color: #333;
+}
+
+.start-form input:focus {
+    border-color: #666;
+}
+
+.start-form button {
+    margin-top: 10px;
+    font-size: 20pt;
+}
+
+.game {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+#boardCanvas {
+    margin: 0 20px 0;
+    border: 1px solid;
+}
+
+#nextCanvas {
+    border: 1px solid;
+}
+
+.stats {
+    width: 120px;
+    white-space: nowrap;
+}
+
+.stats-text {
+    margin-bottom: 5px;
+    font-size: 24pt;
+}
+
+.controls {
+    margin-top: 20px;
+}
+
+.controls p {
+    margin-top: 0;
+    margin-bottom: 5px;
+    font-size: 14pt;
+}
+
+#gameOverModal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+#gameOverModal .modal-content {
+    width: 20%;
+    margin: 15% auto;
+    border: 2px solid #666;
+    border-radius: 20px;
+    padding: 30px 20px;
+    background-color: #fefefe;
+}
+
+#gameOverModal p {
+    margin: 0 0 15px;
+    text-align: center;
+    font-size: 32pt;
+}
+
+#gameOverModal button {
+    display: block;
+    margin: auto;
+    font-size: 18pt;
+}
+
+.scoreboard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.scoreboard-buttons {
+    width: 20%;
+    display: flex;
+    justify-content: space-evenly;
+    margin-top: 15px;
+}
+
+.scoreboard-buttons button {
+    font-size: 18pt;
+}
+
+#scoreboardTable {
+    max-width: 40%;
+    margin-top: 10px;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+#scoreboardTable th, #scoreboardTable td {
+    border: 2px solid #666;
+    padding: 3px 20px;
+}
+
+#scoreboardTable th {
+    font-size: 24pt;
+}
+
+#scoreboardTable td {
+    width: 65%;
+    font-size: 20pt;
+    word-break: break-all;
+}
+
+#scoreboardTable .new-score {
+    color: red;
+}
