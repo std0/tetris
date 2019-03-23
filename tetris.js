@@ -1,8 +1,10 @@
-let urlParams = new URLSearchParams(window.location.search);
-const user = urlParams.get('user');
+const player = localStorage["player"];
+document.getElementById("player").innerText = `Player: ${player}`;
 
-let scoreboard = localStorage.getItem("scoreboard");
-scoreboard = scoreboard !== null ? JSON.parse(scoreboard) : [];
+const scoreElement = document.getElementById("score");
+
+let scoreboard = localStorage["scoreboard"];
+scoreboard = scoreboard !== undefined ? JSON.parse(scoreboard) : [];
 const SCOREBOARD_SIZE = 10;
 
 const boardCvs = document.getElementById("boardCanvas");
@@ -30,201 +32,6 @@ const COLORS = {
 };
 const EMPTY_COLOR = 0;
 const STROKE_COLOR = 8;
-
-function drawSquare(ctx, x, y, colorIndex) {
-    ctx.fillStyle = COLORS[colorIndex];
-    ctx.fillRect(x * SQUARE_PX,y * SQUARE_PX, SQUARE_PX, SQUARE_PX);
-
-    ctx.strokeStyle = COLORS[STROKE_COLOR];
-    ctx.strokeRect(x * SQUARE_PX,y * SQUARE_PX, SQUARE_PX, SQUARE_PX);
-}
-
-class Grid {
-    constructor(ctx, rows, cols) {
-        this.ctx = ctx;
-        this.grid = Array(rows).fill(null).map(() => Array(cols).fill(EMPTY_COLOR));
-        this.figure = null;
-        this.draw();
-    }
-
-    draw() {
-        for (let [i, row] of this.grid.entries()) {
-            for (let [j, square] of row.entries()) {
-                drawSquare(this.ctx, j, i, square);
-            }
-        }
-    }
-
-    fillFigure(color) {
-        for (let [i, row] of this.figure.struct.entries()) {
-            for (let [j, square] of row.entries()) {
-                if (square === 1) {
-                    drawSquare(this.ctx, this.figure.x + j, this.figure.y + i, color);
-                }
-            }
-        }
-    }
-
-    drawFigure() {
-        this.fillFigure(this.figure.color);
-    }
-
-    eraseFigure() {
-        this.fillFigure(EMPTY_COLOR);
-    }
-}
-
-function* generateFigure() {
-    let structTypes = Object.keys(STRUCTS);
-    while (true) {
-        let randomType = structTypes[Math.floor(Math.random() * structTypes.length)];
-        yield new Figure(randomType, STRUCTS[randomType].struct, STRUCTS[randomType].color);
-    }
-}
-
-class Next extends Grid {
-    constructor(nextCtx, rows, cols) {
-        super(nextCtx, rows, cols);
-        this.generator = generateFigure();
-        this.figure = this.nextFigure;
-    }
-
-    get nextFigure() {
-        return this.generator.next().value;
-    }
-
-    get currentFigure() {
-        let currentFigure = this.figure;
-        this.eraseFigure();
-
-        this.figure = this.nextFigure;
-        this.drawFigure();
-
-        return currentFigure;
-    }
-}
-
-function findSortedIndex(newElem, array, compareFn) {
-    if (array.length < 1 || compareFn(newElem, array[0])) {
-        return 0;
-    }
-
-    let i;
-    for (i = 1; i < array.length; i++) {
-        if (compareFn(newElem, array[i]) && !compareFn(newElem, array[i - 1])) {
-            break;
-        }
-    }
-    return i;
-}
-
-class Board extends Grid {
-    constructor(boardCtx, rows, cols, next) {
-        super(boardCtx, rows, cols);
-        this.next = next;
-        this.figure = this.getNextFigure();
-    }
-
-    getNextFigure() {
-        let figure = this.next.currentFigure;
-        figure.x = 3;
-        figure.y = -2;
-        figure.board = this;
-        return figure
-    }
-
-    checkCollision(newX, newY, nextState=null) {
-        let state = nextState === null ? this.figure.struct : nextState;
-        for (let [i, row] of state.entries()) {
-            for (let [j, square] of row.entries()) {
-                if (square === 0) {
-                    continue;
-                }
-
-                let newSquareX = newX + j;
-                let newSquareY = newY + i;
-
-                if (newSquareX < 0 || newSquareX >= BOARD_COLS || newSquareY >= BOARD_ROWS) {
-                    return true;
-                }
-
-                if (newSquareY < 0) {
-                    continue;
-                }
-
-                if (this.grid[newSquareY][newSquareX] !== EMPTY_COLOR) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    lockFigure() {
-        for (let [i, row] of this.figure.struct.entries()) {
-            for (let [j, square] of row.entries()) {
-                if (square === 0) {
-                    continue;
-                }
-
-                if (this.figure.y + i <= 0) {
-                    clearInterval(timerId);
-
-                    let newScore = {
-                        user: user,
-                        score: score
-                    };
-                    console.log(`Score - ${newScore.score}`);
-
-                    let scoreIndex = findSortedIndex(newScore, scoreboard, (a, b) => a.score > b.score);
-                    scoreboard.splice(scoreIndex, 0, newScore);
-                    if (scoreboard.length > SCOREBOARD_SIZE) {
-                        scoreboard = scoreboard.slice(0, SCOREBOARD_SIZE);
-                    }
-                    console.log(`Scoreboard - ${JSON.stringify(scoreboard)}`);
-
-                    localStorage.setItem("scoreboard", JSON.stringify(scoreboard));
-
-                    alert("Game Over");
-                    return;
-                }
-
-                this.grid[this.figure.y + i][this.figure.x + j] = this.figure.color;
-            }
-        }
-
-        this.removeFullRows(this.figure.y, this.figure.y + this.figure.struct.length);
-        this.draw();
-        let scoreElement = document.getElementById("score");
-        scoreElement.innerText = `Score: ${score}`;
-
-        this.figure = this.getNextFigure();
-    }
-
-    removeFullRows(from, to) {
-        to = to > this.grid.length ? this.grid.length : to;
-        for (let i = from; i < to; i++) {
-            let row = this.grid[i];
-            let isRowFull = true;
-            for (let square of row) {
-                isRowFull = isRowFull && (square !== EMPTY_COLOR);
-            }
-
-            if (isRowFull === true) {
-                let newRow = Array(BOARD_COLS).fill(EMPTY_COLOR);
-                this.grid.splice(i, 1);
-                this.grid.unshift(newRow);
-
-                score += 100;
-                clearInterval(timerId);
-                if (delay > 200) {
-                    delay -= 50;
-                }
-                timerId = setInterval(() => this.figure.moveDown(), delay);
-            }
-        }
-    }
-}
 
 const STRUCTS = {
     I: {
@@ -303,11 +110,208 @@ const I_KICKS = [
     [[0, 0], [ 1, 0], [-2, 0], [ 1,-2], [-2, 1]]
 ];
 
+function drawSquare(ctx, x, y, colorIndex) {
+    ctx.fillStyle = COLORS[colorIndex];
+    ctx.fillRect(x * SQUARE_PX,y * SQUARE_PX, SQUARE_PX, SQUARE_PX);
+
+    ctx.strokeStyle = COLORS[STROKE_COLOR];
+    ctx.strokeRect(x * SQUARE_PX,y * SQUARE_PX, SQUARE_PX, SQUARE_PX);
+}
+
+function* generateFigure() {
+    let structTypes = Object.keys(STRUCTS);
+    while (true) {
+        let randomType = structTypes[Math.floor(Math.random() * structTypes.length)];
+        yield new Figure(randomType, STRUCTS[randomType].struct, STRUCTS[randomType].color);
+    }
+}
+
+function findSortedIndex(elem, array, compareFn) {
+    if (array.length < 1 || compareFn(elem, array[0])) {
+        return 0;
+    }
+
+    let i;
+    for (i = 1; i < array.length; i++) {
+        if (compareFn(elem, array[i]) && !compareFn(elem, array[i - 1])) {
+            break;
+        }
+    }
+    return i;
+}
+
 function rotateMatrix(matrix) {
     matrix = [...matrix].reverse();
     return matrix[0].map((column, index) => (
         matrix.map(row => row[index])
     ));
+}
+
+class Grid {
+    constructor(ctx, rows, cols) {
+        this.ctx = ctx;
+        this.grid = Array(rows).fill(null).map(() => Array(cols).fill(EMPTY_COLOR));
+        this.figure = null;
+        this.draw();
+    }
+
+    draw() {
+        for (let [i, row] of this.grid.entries()) {
+            for (let [j, square] of row.entries()) {
+                drawSquare(this.ctx, j, i, square);
+            }
+        }
+    }
+
+    fillFigure(color) {
+        for (let [i, row] of this.figure.struct.entries()) {
+            for (let [j, square] of row.entries()) {
+                if (square === 1) {
+                    drawSquare(this.ctx, this.figure.x + j, this.figure.y + i, color);
+                }
+            }
+        }
+    }
+
+    drawFigure() {
+        this.fillFigure(this.figure.color);
+    }
+
+    eraseFigure() {
+        this.fillFigure(EMPTY_COLOR);
+    }
+}
+
+class Next extends Grid {
+    constructor(nextCtx, rows, cols) {
+        super(nextCtx, rows, cols);
+        this.generator = generateFigure();
+        this.figure = this.nextFigure;
+    }
+
+    get nextFigure() {
+        return this.generator.next().value;
+    }
+
+    get currentFigure() {
+        let currentFigure = this.figure;
+        this.eraseFigure();
+
+        this.figure = this.nextFigure;
+        this.drawFigure();
+
+        return currentFigure;
+    }
+}
+
+class Board extends Grid {
+    constructor(boardCtx, rows, cols, next) {
+        super(boardCtx, rows, cols);
+        this.next = next;
+        this.figure = this.getNextFigure();
+    }
+
+    getNextFigure() {
+        let figure = this.next.currentFigure;
+        figure.x = 3;
+        figure.y = -2;
+        figure.board = this;
+        return figure
+    }
+
+    checkCollision(newX, newY, nextState=null) {
+        let state = nextState === null ? this.figure.struct : nextState;
+        for (let [i, row] of state.entries()) {
+            for (let [j, square] of row.entries()) {
+                if (square === 0) {
+                    continue;
+                }
+
+                let newSquareX = newX + j;
+                let newSquareY = newY + i;
+
+                if (newSquareX < 0 || newSquareX >= BOARD_COLS || newSquareY >= BOARD_ROWS) {
+                    return true;
+                }
+
+                if (newSquareY < 0) {
+                    continue;
+                }
+
+                if (this.grid[newSquareY][newSquareX] !== EMPTY_COLOR) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    lockFigure() {
+        for (let [i, row] of this.figure.struct.entries()) {
+            for (let [j, square] of row.entries()) {
+                if (square === 0) {
+                    continue;
+                }
+
+                if (this.figure.y + i <= 0) {
+                    clearInterval(timerId);
+                    document.removeEventListener("keydown", handleKeydown);
+
+                    let newScore = {
+                        player: player,
+                        score: score
+                    };
+
+                    let scoreIndex = findSortedIndex(newScore, scoreboard, (a, b) => a.score > b.score);
+                    scoreboard.splice(scoreIndex, 0, newScore);
+                    if (scoreboard.length > SCOREBOARD_SIZE) {
+                        scoreboard = scoreboard.slice(0, SCOREBOARD_SIZE);
+                    }
+
+                    localStorage["newScoreIndex"] = scoreIndex;
+                    localStorage["scoreboard"] = JSON.stringify(scoreboard);
+
+                    let gameOverModal = document.getElementById('gameOverModal');
+                    gameOverModal.style.display = "block";
+
+                    return;
+                }
+
+                this.grid[this.figure.y + i][this.figure.x + j] = this.figure.color;
+            }
+        }
+
+        this.removeFullRows(this.figure.y, this.figure.y + this.figure.struct.length);
+        this.draw();
+
+        this.figure = this.getNextFigure();
+    }
+
+    removeFullRows(from, to) {
+        to = to > this.grid.length ? this.grid.length : to;
+        for (let i = from; i < to; i++) {
+            let row = this.grid[i];
+            let isRowFull = true;
+            for (let square of row) {
+                isRowFull = isRowFull && (square !== EMPTY_COLOR);
+            }
+
+            if (isRowFull === true) {
+                let newRow = Array(BOARD_COLS).fill(EMPTY_COLOR);
+                this.grid.splice(i, 1);
+                this.grid.unshift(newRow);
+
+                score += 100;
+                scoreElement.innerText = `Score: ${score}`;
+
+                clearInterval(timerId);
+                if (delay > 200) {
+                    delay -= 50;
+                }
+                timerId = setInterval(() => this.figure.moveDown(), delay);
+            }
+        }
+    }
 }
 
 class Figure {
@@ -383,12 +387,14 @@ const KEYS_ACTIONS = {
     ArrowDown: () => board.figure.moveDown()
 };
 
-document.addEventListener("keydown", (event) => {
+function handleKeydown(event) {
     if (event.key in KEYS_ACTIONS) {
         event.preventDefault();
         KEYS_ACTIONS[event.key]();
     }
-});
+}
+
+document.addEventListener("keydown", handleKeydown);
 
 let score = 0;
 let delay = 1000;
